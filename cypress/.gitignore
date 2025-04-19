@@ -1,0 +1,4 @@
+# Example .gitignore for Node.js
+node_modules/
+cypress/screenshots/
+cypress/videos/

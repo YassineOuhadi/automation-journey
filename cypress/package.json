@@ -1,0 +1,11 @@
+{
+  "name": "cypress",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Use 'npm run test:cypress' from root\" && exit 0"
+  },
+  "devDependencies": {
+    "cypress": "^14.3.1"
+  }
+}

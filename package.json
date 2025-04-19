@@ -1,0 +1,28 @@
+{
+  "name": "automation-journey",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YassineOuhadi/automation-journey.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/YassineOuhadi/automation-journey/issues"
+  },
+  "homepage": "https://github.com/YassineOuhadi/automation-journey#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.5.1",
+    "prettier": "^3.5.3"
+  }
+}
