@@ -1,7 +1,1 @@
-# Example .gitignore for Node.js
 node_modules/
-dist/
-.env
-.idea/
-.vscode/
-coverage/

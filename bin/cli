@@ -1,0 +1,124 @@
+#!/bin/bash
+set -euo pipefail
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+RED='\033[0;31m'
+RESET='\033[0m'
+
+readonly ENV=".env"
+readonly DOCKER_COMPOSE="docker-compose.yml"
+
+logo() {
+  echo -e "${CYAN}"
+  cat <<'EOF'   
+   🧪 Automation CLI | Multi-Tool Runner
+EOF
+  echo -e "${RESET}"
+}
+
+log() {
+    echo -e "${GREEN}[✔] $1${RESET}"
+}
+
+warn() {
+    echo -e "${YELLOW}[!] $1${RESET}"
+}
+
+error_exit() {
+    echo -e "${RED}[✖] $1${RESET}" >&2
+    exit 1
+}
+
+env() {
+    if [[ -f "$ENV" ]]; then
+        log "Loading root environment from $ENV..."
+        export $(grep -v '^#' "$ENV" | xargs)
+    else
+        error_exit "Missing $ENV in the root directory."
+    fi
+}
+
+map() {
+    case "$1" in
+        cypress) echo "cypress-e2e" ;;
+        selenium) echo "selenium-tests" ;;
+        *) echo "$1" ;;
+    esac
+}
+
+docker_compose() {
+    local action="$1"
+    local framework_name="$2"
+    local docker_args="$3"
+
+    local directory
+    directory="$(map "$framework_name")"
+    local framework_env_file="${PWD}/${directory}/.env"
+
+    if [[ -f "$framework_env_file" ]]; then
+        log "$action → $framework_name using env: ${directory}/.env"
+        docker-compose --env-file "$framework_env_file" -f "$DOCKER_COMPOSE" $docker_args "$framework_name"
+    else
+        error_exit "Missing env file for framework at: ${directory}/.env"
+    fi
+}
+
+build()  { docker_compose "🔨 Building" "$1" "build"; }
+run()    { docker_compose "🚀 Running" "$1" "run --rm"; }
+shell()  { docker_compose "🔧 Shell access" "$1" "run --rm --entrypoint /bin/bash"; }
+
+clean() {
+    log "🧹 Cleaning containers, volumes and images..."
+    docker-compose -f "$DOCKER_COMPOSE" down --rmi local --volumes --remove-orphans
+}
+
+print_usage() {
+    echo -e "${CYAN}Usage:${RESET} ./bin/cli {build|run|shell|clean} <framework_name>"
+    echo ""
+    echo -e "${CYAN}Examples:${RESET}"
+    echo -e "  ./bin/cli build cypress"
+    echo -e "  ./bin/cli run selenium"
+    echo -e "  ./bin/cli shell my-framework"
+    echo -e "  ./bin/cli clean"
+    echo ""
+}
+
+main() {
+    logo
+    if [[ $# -lt 1 ]]; then
+        print_usage
+        exit 1
+    fi
+
+    local command="$1"
+    local framework="${2:-}"
+
+    env
+
+    case "$command" in
+        build)
+            [[ -z "$framework" ]] && error_exit "framework name required for 'build'"
+            build "$framework"
+            ;;
+        run)
+            [[ -z "$framework" ]] && error_exit "framework name required for 'run'"
+            run "$framework"
+            ;;
+        shell)
+            [[ -z "$framework" ]] && error_exit "framework name required for 'shell'"
+            shell "$framework"
+            ;;
+        clean)
+            clean
+            ;;
+        *)
+            warn "Unknown command: $command"
+            print_usage
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

@@ -1,0 +1,15 @@
+{
+  "name": "cypress-e2e",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "cypress run",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run --headless --spec 'cypress/e2e/todo.cy.js'"
+  },
+  "devDependencies": {
+    "cypress": "^14.3.1",
+    "eslint-plugin-cypress": "^4.2.1"
+  }
+}
