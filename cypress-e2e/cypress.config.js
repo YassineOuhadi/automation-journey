@@ -6,12 +6,14 @@ export default defineConfig({
       // You can add your custom Node event handlers here
     },
     supportFile: 'cypress/support/e2e.js',
-    video: true
+    video: true,
+    videosFolder: 'cypress/videos',
+    reporter: 'mochawesome',
+    reporterOptions: {
+      reportDir: 'cypress/reports',
+      overwrite: false,
+      html: false,
+      json: true
+    }
   },
 });
-
-// const { defineConfig } = require('cypress')
-
-// module.exports = defineConfig({
-//   video: true,
-// })

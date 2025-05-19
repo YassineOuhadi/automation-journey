@@ -2,15 +2,12 @@ FROM node:20-alpine AS deps
 
 WORKDIR /automation-journey
 
-COPY ../package.json ../package-lock.json ./
-
+COPY package.json package-lock.json ./
 RUN npm install
 
-COPY ./ ./cypress-e2e
+COPY cypress-e2e ./cypress-e2e
 
-WORKDIR /automation-journey/cypress-e2e
-
-RUN npm install
+RUN npm install --prefix ./cypress-e2e
 
 FROM cypress/included:14.3.1
 

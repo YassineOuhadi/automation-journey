@@ -7,9 +7,6 @@ CYAN='\033[0;36m'
 RED='\033[0;31m'
 RESET='\033[0m'
 
-readonly ENV=".env"
-readonly DOCKER_COMPOSE="docker-compose.yml"
-
 logo() {
   echo -e "${CYAN}"
   cat <<'EOF'   
@@ -31,56 +28,47 @@ error_exit() {
     exit 1
 }
 
-env() {
-    if [[ -f "$ENV" ]]; then
-        log "Loading root environment from $ENV..."
-        export $(grep -v '^#' "$ENV" | xargs)
+perform() {
+    local command="$1"
+    local framework="$2"
+    local args="$3"
+
+    local env="${PWD}/shared/env/${framework}/.env"
+
+    if [[ -f "$env" ]]; then
+        log "$command → $framework using env: ${env}"
+        docker-compose --env-file "$env" -f shared/docker/docker-compose.yml $args "$framework"
     else
-        error_exit "Missing $ENV in the root directory."
+        error_exit "Missing env file: ${env}"
     fi
 }
 
-map() {
-    case "$1" in
-        cypress) echo "cypress-e2e" ;;
-        selenium) echo "selenium-tests" ;;
-        *) echo "$1" ;;
-    esac
+build()  { 
+    perform "🔨 Building" "$1" "build"
 }
 
-docker_compose() {
-    local action="$1"
-    local framework_name="$2"
-    local docker_args="$3"
-
-    local directory
-    directory="$(map "$framework_name")"
-    local framework_env_file="${PWD}/${directory}/.env"
-
-    if [[ -f "$framework_env_file" ]]; then
-        log "$action → $framework_name using env: ${directory}/.env"
-        docker-compose --env-file "$framework_env_file" -f "$DOCKER_COMPOSE" $docker_args "$framework_name"
-    else
-        error_exit "Missing env file for framework at: ${directory}/.env"
-    fi
+run() {
+    log "🔓 Allowing Docker to access X server"
+    xhost +local:docker || warn "xhost command failed"
+    perform "🚀 Running" "$1" "run --rm"
 }
 
-build()  { docker_compose "🔨 Building" "$1" "build"; }
-run()    { docker_compose "🚀 Running" "$1" "run --rm"; }
-shell()  { docker_compose "🔧 Shell access" "$1" "run --rm --entrypoint /bin/bash"; }
+shell()  { 
+    perform "🔧 Shell access" "$1" "run --rm --entrypoint /bin/bash"
+}
 
 clean() {
     log "🧹 Cleaning containers, volumes and images..."
-    docker-compose -f "$DOCKER_COMPOSE" down --rmi local --volumes --remove-orphans
+    docker-compose -f shared/docker/docker-compose.yml down --rmi local --volumes --remove-orphans
 }
 
 print_usage() {
-    echo -e "${CYAN}Usage:${RESET} ./bin/cli {build|run|shell|clean} <framework_name>"
+    echo -e "${CYAN}Usage:${RESET} ./bin/cli {build|run|shell|clean} <framework>"
     echo ""
     echo -e "${CYAN}Examples:${RESET}"
     echo -e "  ./bin/cli build cypress"
     echo -e "  ./bin/cli run selenium"
-    echo -e "  ./bin/cli shell my-framework"
+    echo -e "  ./bin/cli shell cypress"
     echo -e "  ./bin/cli clean"
     echo ""
 }
@@ -94,8 +82,6 @@ main() {
 
     local command="$1"
     local framework="${2:-}"
-
-    env
 
     case "$command" in
         build)
