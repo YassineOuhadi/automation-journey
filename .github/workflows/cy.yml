@@ -44,18 +44,33 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
-          body-path: ./cypress-summary.md
+          body-path: ./cypress-e2e/cypress-summary.md
+
+      - name: Post Cypress result to Commit
+        if: github.event_name == 'push'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.sha }}
+          body-path: ./cypress-e2e/cypress-summary.md
 
       - name: Upload Cypress videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-videos
-          path: ./cypress/videos/
+          path: ./cypress-e2e/cypress/videos/
 
       - name: Upload Cypress screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-screenshots
-          path: ./cypress/screenshots/
+          path: ./cypress-e2e/cypress/screenshots/
+
+      - name: Upload Cypress JSON reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-json-reports
+          path: ./cypress-e2e/cypress/reports/
