@@ -13,6 +13,7 @@ on:
 jobs:
   cypress:
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: ./cypress-e2e
@@ -25,13 +26,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'yarn'
 
-      - name: Install Cypress E2E dependencies
-        run: npm install
-        working-directory: ./cypress-e2e
+      - name: Install root dependencies (monorepo)
+        run: yarn install
+        working-directory: .
 
       - name: Run Cypress tests
-        run: npx cypress run || true
+        run: yarn cypress:run || true
 
       - name: Generate Cypress summary
         run: node ./generate-cypress-summary.js
@@ -42,18 +44,18 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
-          body-path: ./cypress-e2e/cypress-summary.md
+          body-path: ./cypress-summary.md
 
       - name: Upload Cypress videos
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-videos
-          path: ./cypress-e2e/cypress/videos/
+          path: ./cypress/videos/
 
       - name: Upload Cypress screenshots
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-screenshots
-          path: ./cypress-e2e/cypress/screenshots/
+          path: ./cypress/screenshots/

@@ -3,16 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "workspaces": [
-    "cypress-e2e"
-  ],
+  "private": true,
+  "workspaces": {
+    "packages": ["cypress-e2e"],
+    "nohoist": [
+      "**/mochawesome",
+      "**/mochawesome/**",
+      "**/mochawesome-merge",
+      "**/mochawesome-report-generator"
+    ]
+  },
   "scripts": {
     "lint": "eslint .",
     "lint:cypress": "eslint cypress-e2e",
     "format": "prettier --check .",
     "prettier-format": "prettier --config .prettierrc '**/*.{js,ts}' --write",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:cypress": "cd cypress-e2e && npx cypress run",
+    "test:cypress": "yarn workspace cypress-e2e run cypress:run",
     "test:playwright": "cd playwright && npx playwright test"
   },
   "repository": {
